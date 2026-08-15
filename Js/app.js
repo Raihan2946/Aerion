@@ -25,25 +25,25 @@ import {
 const firebaseConfig = {
 
     apiKey:
-        "ISI_API_KEY_KAMU",
+        "AIzaSyC5xNQdWwZjy8772_BTI3uv3kFzpdv2ds4",
 
     authDomain:
-        "ISI_PROJECT_ID.firebaseapp.com",
+        "aerion-6053d.firebaseapp.com",
 
     databaseURL:
-        "ISI_DATABASE_URL_KAMU",
+        "https://aerion-6053d-default-rtdb.asia-southeast1.firebasedatabase.app",
 
     projectId:
-        "ISI_PROJECT_ID",
+        "aerion-6053d",
 
     storageBucket:
-        "ISI_STORAGE_BUCKET",
+        "aerion-6053d.firebasestorage.app",
 
     messagingSenderId:
-        "ISI_MESSAGING_SENDER_ID",
+        "106199424315",
 
     appId:
-        "ISI_APP_ID"
+        "1:106199424315:web:fde086e94584329a576b1e"
 
 };
 
