@@ -911,19 +911,100 @@
 
             <!-- CO2 -->
 
-            <div class="monitor-card">
+            <!-- CO2 IN -->
+<div class="monitor-card">
+    <div class="monitor-card-header">
+        <span>
+            CO₂ IN
+        </span>
 
-                <div class="monitor-card-header">
+        <div class="monitor-icon">
+            IN
+        </div>
+    </div>
 
-                    <span>
-                        eCO₂
-                    </span>
+    <div class="monitor-value">
+        <strong id="co2In">
+            --
+        </strong>
 
-                    <div class="monitor-icon">
-                        CO₂
-                    </div>
+        <span>
+            ppm
+        </span>
+    </div>
 
-                </div>
+    <div class="monitor-description">
+        CO₂ sebelum proses mikroalga
+    </div>
+
+    <div class="progress">
+        <div id="co2InProgress"></div>
+    </div>
+</div>
+
+
+<!-- CO2 OUT -->
+<div class="monitor-card">
+    <div class="monitor-card-header">
+        <span>
+            CO₂ OUT
+        </span>
+
+        <div class="monitor-icon">
+            OUT
+        </div>
+    </div>
+
+    <div class="monitor-value">
+        <strong id="co2Out">
+            --
+        </strong>
+
+        <span>
+            ppm
+        </span>
+    </div>
+
+    <div class="monitor-description">
+        CO₂ setelah proses mikroalga
+    </div>
+
+    <div class="progress">
+        <div id="co2OutProgress"></div>
+    </div>
+</div>
+
+
+<!-- EFISIENSI -->
+<div class="monitor-card">
+    <div class="monitor-card-header">
+        <span>
+            CO₂ Efficiency
+        </span>
+
+        <div class="monitor-icon">
+            %
+        </div>
+    </div>
+
+    <div class="monitor-value">
+        <strong id="co2Efficiency">
+            --
+        </strong>
+
+        <span>
+            %
+        </span>
+    </div>
+
+    <div class="monitor-description">
+        Efisiensi penurunan CO₂
+    </div>
+
+    <div class="progress">
+        <div id="co2EfficiencyProgress"></div>
+    </div>
+</div>
 
                 <div class="monitor-value">
 
@@ -1241,7 +1322,90 @@
         <!-- CHART -->
 
         <div class="chart-container">
+            <!-- =====================================================
+     CO2 ANALYTICS
+====================================================== -->
 
+<div class="analytics-container">
+
+    <div class="analytics-header">
+        <span>
+            HISTORICAL ANALYTICS
+        </span>
+
+        <h3>
+            Analisis CO₂
+        </h3>
+
+        <p>
+            Perhitungan berdasarkan data mentah
+            yang tersimpan di Firebase.
+        </p>
+    </div>
+
+
+    <div class="analytics-grid">
+
+        <!-- RATA-RATA JAM -->
+        <div class="analytics-card">
+
+            <span>
+                HOURLY AVERAGE
+            </span>
+
+            <h4>
+                Rata-rata Per Jam
+            </h4>
+
+            <div class="analytics-row">
+                <span>CO₂ IN</span>
+                <strong id="hourlyCo2In">-- ppm</strong>
+            </div>
+
+            <div class="analytics-row">
+                <span>CO₂ OUT</span>
+                <strong id="hourlyCo2Out">-- ppm</strong>
+            </div>
+
+            <div class="analytics-row">
+                <span>Efisiensi</span>
+                <strong id="hourlyEfficiency">-- %</strong>
+            </div>
+
+        </div>
+
+
+        <!-- RATA-RATA HARI -->
+        <div class="analytics-card">
+
+            <span>
+                DAILY AVERAGE
+            </span>
+
+            <h4>
+                Rata-rata Per Hari
+            </h4>
+
+            <div class="analytics-row">
+                <span>CO₂ IN</span>
+                <strong id="dailyCo2In">-- ppm</strong>
+            </div>
+
+            <div class="analytics-row">
+                <span>CO₂ OUT</span>
+                <strong id="dailyCo2Out">-- ppm</strong>
+            </div>
+
+            <div class="analytics-row">
+                <span>Efisiensi</span>
+                <strong id="dailyEfficiency">-- %</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
             <div class="chart-header">
 
@@ -1252,7 +1416,7 @@
                     </span>
 
                     <h3>
-                        CO₂ Monitoring
+                         CO₂ IN vs CO₂ OUT
                     </h3>
 
                 </div>
@@ -1264,9 +1428,9 @@
                         Current
                     </span>
 
-                    <strong id="chartCurrent">
-                        -- ppm
-                    </strong>
+                <strong id="chartCurrent">
+                    IN -- | OUT --
+                </strong>
 
                 </div>
 
