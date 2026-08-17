@@ -6,7 +6,6 @@ import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
-
 import {
     getDatabase,
     ref,
@@ -14,13 +13,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
-
 // =====================================================
 // FIREBASE CONFIGURATION
 // =====================================================
-//
-// GANTI SEMUA DATA DI BAWAH DENGAN DATA FIREBASE-MU
-//
 
 const firebaseConfig = {
 
@@ -44,9 +39,7 @@ const firebaseConfig = {
 
     appId:
         "1:106199424315:web:fde086e94584329a576b1e"
-
 };
-
 
 
 // =====================================================
@@ -56,28 +49,197 @@ const firebaseConfig = {
 const app =
     initializeApp(firebaseConfig);
 
-
 const database =
     getDatabase(app);
 
 
-
 // =====================================================
-// DATABASE REFERENCE
+// DATABASE REFERENCES
 // =====================================================
 
 const sensorRef =
     ref(database, "sensor");
 
+const historyRef =
+    ref(database, "history");
 
 
 // =====================================================
-// CHART CONFIGURATION
+// HELPER
+// =====================================================
+
+function getNumber(value) {
+
+    const number =
+        Number(value);
+
+    if (
+        Number.isNaN(number)
+    ) {
+        return 0;
+    }
+
+    return number;
+}
+
+
+// =====================================================
+// EFISIENSI CO2
+// =====================================================
+
+function hitungEfisiensi(
+    co2In,
+    co2Out
+) {
+
+    if (
+        !co2In ||
+        co2In <= 0
+    ) {
+        return 0;
+    }
+
+    const efficiency =
+        (
+            (co2In - co2Out)
+            /
+            co2In
+        ) * 100;
+
+    return efficiency;
+}
+
+
+// =====================================================
+// RATA-RATA
+// =====================================================
+
+function hitungRataRata(
+    values
+) {
+
+    if (
+        !values ||
+        values.length === 0
+    ) {
+        return 0;
+    }
+
+    const validValues =
+        values.filter(
+            value =>
+                Number.isFinite(value)
+        );
+
+    if (
+        validValues.length === 0
+    ) {
+        return 0;
+    }
+
+    const total =
+        validValues.reduce(
+            (sum, value) =>
+                sum + value,
+            0
+        );
+
+    return (
+        total /
+        validValues.length
+    );
+}
+
+
+// =====================================================
+// PROGRESS BAR
+// =====================================================
+
+function updateProgress(
+    elementId,
+    value,
+    maxValue
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+    if (!element) {
+        return;
+    }
+
+    let percentage =
+        (
+            value /
+            maxValue
+        ) * 100;
+
+    percentage =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                percentage
+            )
+        );
+
+    element.style.width =
+        percentage + "%";
+}
+
+
+// =====================================================
+// AQI
+// =====================================================
+
+function updateAQI(aqi) {
+
+    const element =
+        document.getElementById(
+            "aqiStatus"
+        );
+
+    if (!element) {
+        return;
+    }
+
+    if (aqi <= 1) {
+
+        element.textContent =
+            "Good";
+
+    }
+    else if (aqi <= 2) {
+
+        element.textContent =
+            "Moderate";
+
+    }
+    else if (aqi <= 3) {
+
+        element.textContent =
+            "Unhealthy";
+
+    }
+    else {
+
+        element.textContent =
+            "Poor";
+
+    }
+}
+
+
+// =====================================================
+// CHART DATA
 // =====================================================
 
 const chartCanvas =
-    document.getElementById("co2Chart");
-
+    document.getElementById(
+        "co2Chart"
+    );
 
 const chartContext =
     chartCanvas.getContext("2d");
@@ -86,15 +248,20 @@ const chartContext =
 const co2Labels =
     [];
 
+const co2InValues =
+    [];
 
-const co2Values =
+const co2OutValues =
     [];
 
 
 const MAX_DATA =
-    20;
+    30;
 
 
+// =====================================================
+// CHART
+// =====================================================
 
 const co2Chart =
     new Chart(
@@ -111,12 +278,11 @@ const co2Chart =
                 datasets: [
 
                     {
-
                         label:
-                            "CO₂",
+                            "CO₂ IN",
 
                         data:
-                            co2Values,
+                            co2InValues,
 
                         borderWidth:
                             2,
@@ -128,17 +294,40 @@ const co2Chart =
                             3,
 
                         fill:
-                            true,
-
-                        backgroundColor:
-                            "rgba(57, 229, 140, 0.08)",
+                            false,
 
                         borderColor:
                             "#39e58c",
 
                         pointBackgroundColor:
                             "#39e58c"
+                    },
 
+
+                    {
+                        label:
+                            "CO₂ OUT",
+
+                        data:
+                            co2OutValues,
+
+                        borderWidth:
+                            2,
+
+                        tension:
+                            0.4,
+
+                        pointRadius:
+                            3,
+
+                        fill:
+                            false,
+
+                        borderColor:
+                            "#43d9d0",
+
+                        pointBackgroundColor:
+                            "#43d9d0"
                     }
 
                 ]
@@ -154,13 +343,28 @@ const co2Chart =
                 maintainAspectRatio:
                     false,
 
+                interaction: {
+
+                    mode:
+                        "index",
+
+                    intersect:
+                        false
+                },
+
+
                 plugins: {
 
                     legend: {
 
                         display:
-                            false
+                            true,
 
+                        labels: {
+
+                            color:
+                                "#91aaa0"
+                        }
                     }
 
                 },
@@ -177,14 +381,12 @@ const co2Chart =
 
                             maxTicksLimit:
                                 8
-
                         },
 
                         grid: {
 
                             color:
                                 "rgba(255,255,255,0.04)"
-
                         }
 
                     },
@@ -192,18 +394,19 @@ const co2Chart =
 
                     y: {
 
+                        beginAtZero:
+                            false,
+
                         ticks: {
 
                             color:
                                 "#71877d"
-
                         },
 
                         grid: {
 
                             color:
                                 "rgba(255,255,255,0.04)"
-
                         }
 
                     }
@@ -216,152 +419,53 @@ const co2Chart =
     );
 
 
-
-// =====================================================
-// HELPER
-// =====================================================
-
-function getNumber(value) {
-
-    const number =
-        Number(value);
-
-
-    if (Number.isNaN(number)) {
-
-        return 0;
-
-    }
-
-
-    return number;
-
-}
-
-
-
-// =====================================================
-// UPDATE PROGRESS BAR
-// =====================================================
-
-function updateProgress(
-    elementId,
-    value,
-    maxValue
-) {
-
-    const element =
-        document.getElementById(elementId);
-
-
-    if (!element) {
-
-        return;
-
-    }
-
-
-    let percentage =
-        (value / maxValue) * 100;
-
-
-    percentage =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                percentage
-            )
-        );
-
-
-    element.style.width =
-        percentage + "%";
-
-}
-
-
-
-// =====================================================
-// UPDATE AQI STATUS
-// =====================================================
-
-function updateAQI(aqi) {
-
-    const element =
-        document.getElementById(
-            "aqiStatus"
-        );
-
-
-    if (!element) {
-
-        return;
-
-    }
-
-
-    if (aqi <= 1) {
-
-        element.textContent =
-            "Good";
-
-    }
-
-    else if (aqi <= 2) {
-
-        element.textContent =
-            "Moderate";
-
-    }
-
-    else if (aqi <= 3) {
-
-        element.textContent =
-            "Unhealthy";
-
-    }
-
-    else {
-
-        element.textContent =
-            "Poor";
-
-    }
-
-}
-
-
-
 // =====================================================
 // UPDATE CHART
 // =====================================================
 
-function updateChart(co2) {
+function updateChart(
+    co2In,
+    co2Out,
+    timestamp
+) {
 
-    const now =
-        new Date();
-
-
-    const time =
-        now.toLocaleTimeString(
-            "id-ID",
-            {
-                hour:
-                    "2-digit",
-
-                minute:
-                    "2-digit",
-
-                second:
-                    "2-digit"
-            }
-        );
+    let label =
+        timestamp;
 
 
-    co2Labels.push(time);
+    if (!label) {
 
-    co2Values.push(co2);
+        const now =
+            new Date();
+
+        label =
+            now.toLocaleTimeString(
+                "id-ID",
+                {
+                    hour:
+                        "2-digit",
+
+                    minute:
+                        "2-digit",
+
+                    second:
+                        "2-digit"
+                }
+            );
+    }
+
+
+    co2Labels.push(
+        label
+    );
+
+    co2InValues.push(
+        co2In
+    );
+
+    co2OutValues.push(
+        co2Out
+    );
 
 
     if (
@@ -371,19 +475,18 @@ function updateChart(co2) {
 
         co2Labels.shift();
 
-        co2Values.shift();
+        co2InValues.shift();
 
+        co2OutValues.shift();
     }
 
 
     co2Chart.update();
-
 }
 
 
-
 // =====================================================
-// UPDATE CONNECTION
+// CONNECTION ONLINE
 // =====================================================
 
 function setOnline() {
@@ -392,6 +495,10 @@ function setOnline() {
         document.getElementById(
             "connection"
         );
+
+    if (!connection) {
+        return;
+    }
 
 
     connection.classList.add(
@@ -409,13 +516,11 @@ function setOnline() {
         "small"
     ).textContent =
         "Firebase Connected";
-
 }
 
 
-
 // =====================================================
-// FIREBASE REALTIME LISTENER
+// UPDATE REALTIME SENSOR
 // =====================================================
 
 onValue(
@@ -424,13 +529,12 @@ onValue(
 
     (snapshot) => {
 
-
         const data =
             snapshot.val();
 
 
         console.log(
-            "Firebase data:",
+            "Realtime Firebase:",
             data
         );
 
@@ -442,39 +546,122 @@ onValue(
             );
 
             return;
-
         }
 
 
-
         // =================================================
-        // CO2
+        // CO2 IN
         // =================================================
 
-        const co2 =
+        const co2In =
             getNumber(
-                data.co2
+                data.co2_in
             );
 
 
-        document.getElementById(
-            "co2"
-        ).textContent =
-            co2;
+        const co2InElement =
+            document.getElementById(
+                "co2In"
+            );
 
 
-        document.getElementById(
-            "chartCurrent"
-        ).textContent =
-            co2 + " ppm";
+        if (co2InElement) {
+
+            co2InElement.textContent =
+                co2In;
+        }
 
 
         updateProgress(
-            "co2Progress",
-            co2,
+            "co2InProgress",
+            co2In,
             2000
         );
 
+
+        // =================================================
+        // CO2 OUT
+        // =================================================
+
+        const co2Out =
+            getNumber(
+                data.co2_out
+            );
+
+
+        const co2OutElement =
+            document.getElementById(
+                "co2Out"
+            );
+
+
+        if (co2OutElement) {
+
+            co2OutElement.textContent =
+                co2Out;
+        }
+
+
+        updateProgress(
+            "co2OutProgress",
+            co2Out,
+            2000
+        );
+
+
+        // =================================================
+        // EFISIENSI
+        // =================================================
+
+        const efficiency =
+            hitungEfisiensi(
+                co2In,
+                co2Out
+            );
+
+
+        const efficiencyElement =
+            document.getElementById(
+                "co2Efficiency"
+            );
+
+
+        if (efficiencyElement) {
+
+            efficiencyElement.textContent =
+                efficiency.toFixed(2);
+        }
+
+
+        updateProgress(
+            "co2EfficiencyProgress",
+            Math.max(
+                0,
+                efficiency
+            ),
+            100
+        );
+
+
+        // =================================================
+        // CHART CURRENT
+        // =================================================
+
+        const chartCurrent =
+            document.getElementById(
+                "chartCurrent"
+            );
+
+
+        if (chartCurrent) {
+
+            chartCurrent.textContent =
+                "IN " +
+                co2In +
+                " | OUT " +
+                co2Out +
+                " ppm";
+        }
 
 
         // =================================================
@@ -487,10 +674,17 @@ onValue(
             );
 
 
-        document.getElementById(
-            "temperature"
-        ).textContent =
-            temperature.toFixed(1);
+        const temperatureElement =
+            document.getElementById(
+                "temperature"
+            );
+
+
+        if (temperatureElement) {
+
+            temperatureElement.textContent =
+                temperature.toFixed(1);
+        }
 
 
         updateProgress(
@@ -498,7 +692,6 @@ onValue(
             temperature,
             50
         );
-
 
 
         // =================================================
@@ -511,10 +704,17 @@ onValue(
             );
 
 
-        document.getElementById(
-            "humidity"
-        ).textContent =
-            humidity.toFixed(1);
+        const humidityElement =
+            document.getElementById(
+                "humidity"
+            );
+
+
+        if (humidityElement) {
+
+            humidityElement.textContent =
+                humidity.toFixed(1);
+        }
 
 
         updateProgress(
@@ -524,21 +724,27 @@ onValue(
         );
 
 
-
         // =================================================
-        // TVOC
+        // TVOC IN
         // =================================================
 
         const tvoc =
             getNumber(
-                data.tvoc
+                data.tvoc_in
             );
 
 
-        document.getElementById(
-            "tvoc"
-        ).textContent =
-            tvoc;
+        const tvocElement =
+            document.getElementById(
+                "tvoc"
+            );
+
+
+        if (tvocElement) {
+
+            tvocElement.textContent =
+                tvoc;
+        }
 
 
         updateProgress(
@@ -548,27 +754,32 @@ onValue(
         );
 
 
-
         // =================================================
-        // AQI
+        // AQI IN
         // =================================================
 
         const aqi =
             getNumber(
-                data.aqi
+                data.aqi_in
             );
 
 
-        document.getElementById(
-            "aqi"
-        ).textContent =
-            aqi;
+        const aqiElement =
+            document.getElementById(
+                "aqi"
+            );
+
+
+        if (aqiElement) {
+
+            aqiElement.textContent =
+                aqi;
+        }
 
 
         updateAQI(
             aqi
         );
-
 
 
         // =================================================
@@ -581,18 +792,29 @@ onValue(
             );
 
 
-        document.getElementById(
-            "ldr"
-        ).textContent =
-            ldr;
+        const ldrElement =
+            document.getElementById(
+                "ldr"
+            );
 
+
+        if (ldrElement) {
+
+            ldrElement.textContent =
+                ldr;
+        }
+
+
+        /*
+         * ESP32 ADC 12-bit
+         * range = 0 - 4095
+         */
 
         updateProgress(
             "ldrProgress",
             ldr,
-            1023
+            4095
         );
-
 
 
         // =================================================
@@ -621,59 +843,82 @@ onValue(
             lampu === 1
         ) {
 
-            lampuElement.textContent =
-                "ON";
+            if (lampuElement) {
+
+                lampuElement.textContent =
+                    "ON";
+
+                lampuElement.style.color =
+                    "#39e58c";
+            }
 
 
-            lampuElement.style.color =
-                "#39e58c";
+            if (lampIndicator) {
 
+                lampIndicator.style.background =
+                    "#39e58c";
 
-            lampIndicator.style.background =
-                "#39e58c";
-
-
-            lampIndicator.style.boxShadow =
-                "0 0 12px #39e58c";
+                lampIndicator.style.boxShadow =
+                    "0 0 12px #39e58c";
+            }
 
         }
-
         else {
 
-            lampuElement.textContent =
-                "OFF";
+            if (lampuElement) {
+
+                lampuElement.textContent =
+                    "OFF";
+
+                lampuElement.style.color =
+                    "#91aaa0";
+            }
 
 
-            lampuElement.style.color =
-                "#91aaa0";
+            if (lampIndicator) {
 
+                lampIndicator.style.background =
+                    "#68776f";
 
-            lampIndicator.style.background =
-                "#68776f";
-
-
-            lampIndicator.style.boxShadow =
-                "none";
+                lampIndicator.style.boxShadow =
+                    "none";
+            }
 
         }
-
 
 
         // =================================================
         // LAST UPDATE
         // =================================================
 
-        const now =
-            new Date();
+        const timestamp =
+            data.timestamp;
 
 
-        document.getElementById(
-            "lastUpdate"
-        ).textContent =
-            now.toLocaleTimeString(
-                "id-ID"
+        const lastUpdate =
+            document.getElementById(
+                "lastUpdate"
             );
 
+
+        if (lastUpdate) {
+
+            if (timestamp) {
+
+                lastUpdate.textContent =
+                    timestamp;
+
+            }
+            else {
+
+                lastUpdate.textContent =
+                    new Date()
+                        .toLocaleTimeString(
+                            "id-ID"
+                        );
+            }
+
+        }
 
 
         // =================================================
@@ -681,16 +926,6 @@ onValue(
         // =================================================
 
         setOnline();
-
-
-
-        // =================================================
-        // CHART
-        // =================================================
-
-        updateChart(
-            co2
-        );
 
     },
 
@@ -709,6 +944,11 @@ onValue(
             );
 
 
+        if (!connection) {
+            return;
+        }
+
+
         connection.querySelector(
             "strong"
         ).textContent =
@@ -724,6 +964,419 @@ onValue(
 
 );
 
+
+// =====================================================
+// HISTORY FIREBASE
+// =====================================================
+
+onValue(
+
+    historyRef,
+
+    (snapshot) => {
+
+        const rawData =
+            snapshot.val();
+
+
+        if (!rawData) {
+
+            console.log(
+                "Belum ada data history."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // UBAH OBJECT MENJADI ARRAY
+        // =================================================
+
+        const history =
+            Object.entries(
+                rawData
+            )
+            .map(
+                ([key, value]) => ({
+                    key,
+                    ...value
+                })
+            );
+
+
+        // =================================================
+        // SORT BERDASARKAN EPOCH
+        // =================================================
+
+        history.sort(
+            (a, b) =>
+                getNumber(a.epoch) -
+                getNumber(b.epoch)
+        );
+
+
+        if (
+            history.length === 0
+        ) {
+            return;
+        }
+
+
+        // =================================================
+        // DATA TERAKHIR
+        // =================================================
+
+        const latest =
+            history
+                .slice(-MAX_DATA);
+
+
+        // =================================================
+        // RESET CHART
+        // =================================================
+
+        co2Labels.length =
+            0;
+
+        co2InValues.length =
+            0;
+
+        co2OutValues.length =
+            0;
+
+
+        latest.forEach(
+            item => {
+
+                const co2In =
+                    getNumber(
+                        item.co2_in
+                    );
+
+                const co2Out =
+                    getNumber(
+                        item.co2_out
+                    );
+
+
+                let label =
+                    item.timestamp;
+
+
+                if (
+                    !label &&
+                    item.epoch
+                ) {
+
+                    label =
+                        new Date(
+                            item.epoch * 1000
+                        )
+                        .toLocaleTimeString(
+                            "id-ID",
+                            {
+                                hour:
+                                    "2-digit",
+
+                                minute:
+                                    "2-digit",
+
+                                second:
+                                    "2-digit"
+                            }
+                        );
+                }
+
+
+                co2Labels.push(
+                    label || "--"
+                );
+
+                co2InValues.push(
+                    co2In
+                );
+
+                co2OutValues.push(
+                    co2Out
+                );
+
+            }
+        );
+
+
+        co2Chart.update();
+
+
+        // =================================================
+        // DATA TERBARU UNTUK ANALISIS
+        // =================================================
+
+        const latestData =
+            history[
+                history.length - 1
+            ];
+
+
+        // =================================================
+        // HOURLY AVERAGE
+        // =================================================
+
+        const now =
+            Date.now();
+
+
+        const oneHour =
+            60 * 60 * 1000;
+
+
+        const hourlyData =
+            history.filter(
+                item => {
+
+                    const epoch =
+                        getNumber(
+                            item.epoch
+                        );
+
+
+                    if (!epoch) {
+                        return false;
+                    }
+
+
+                    const itemTime =
+                        epoch * 1000;
+
+
+                    return (
+                        now -
+                        itemTime
+                        <=
+                        oneHour
+                    );
+
+                }
+            );
+
+
+        const hourlyCo2In =
+            hitungRataRata(
+                hourlyData.map(
+                    item =>
+                        getNumber(
+                            item.co2_in
+                        )
+                )
+            );
+
+
+        const hourlyCo2Out =
+            hitungRataRata(
+                hourlyData.map(
+                    item =>
+                        getNumber(
+                            item.co2_out
+                        )
+                )
+            );
+
+
+        const hourlyEfficiency =
+            hitungEfisiensi(
+                hourlyCo2In,
+                hourlyCo2Out
+            );
+
+
+        // =================================================
+        // DAILY AVERAGE
+        // =================================================
+
+        const today =
+            new Date();
+
+
+        const todayDate =
+            today.toLocaleDateString(
+                "id-ID"
+            );
+
+
+        const dailyData =
+            history.filter(
+                item => {
+
+                    if (
+                        !item.epoch
+                    ) {
+                        return false;
+                    }
+
+
+                    const itemDate =
+                        new Date(
+                            getNumber(
+                                item.epoch
+                            ) * 1000
+                        );
+
+
+                    return (
+                        itemDate
+                            .toLocaleDateString(
+                                "id-ID"
+                            )
+                        ===
+                        todayDate
+                    );
+
+                }
+            );
+
+
+        const dailyCo2In =
+            hitungRataRata(
+                dailyData.map(
+                    item =>
+                        getNumber(
+                            item.co2_in
+                        )
+                )
+            );
+
+
+        const dailyCo2Out =
+            hitungRataRata(
+                dailyData.map(
+                    item =>
+                        getNumber(
+                            item.co2_out
+                        )
+                )
+            );
+
+
+        const dailyEfficiency =
+            hitungEfisiensi(
+                dailyCo2In,
+                dailyCo2Out
+            );
+
+
+        // =================================================
+        // TAMPILKAN HOURLY
+        // =================================================
+
+        const hourlyInElement =
+            document.getElementById(
+                "hourlyCo2In"
+            );
+
+
+        const hourlyOutElement =
+            document.getElementById(
+                "hourlyCo2Out"
+            );
+
+
+        const hourlyEfficiencyElement =
+            document.getElementById(
+                "hourlyEfficiency"
+            );
+
+
+        if (hourlyInElement) {
+
+            hourlyInElement.textContent =
+                hourlyCo2In.toFixed(1)
+                + " ppm";
+        }
+
+
+        if (hourlyOutElement) {
+
+            hourlyOutElement.textContent =
+                hourlyCo2Out.toFixed(1)
+                + " ppm";
+        }
+
+
+        if (hourlyEfficiencyElement) {
+
+            hourlyEfficiencyElement.textContent =
+                hourlyEfficiency.toFixed(2)
+                + " %";
+        }
+
+
+        // =================================================
+        // TAMPILKAN DAILY
+        // =================================================
+
+        const dailyInElement =
+            document.getElementById(
+                "dailyCo2In"
+            );
+
+
+        const dailyOutElement =
+            document.getElementById(
+                "dailyCo2Out"
+            );
+
+
+        const dailyEfficiencyElement =
+            document.getElementById(
+                "dailyEfficiency"
+            );
+
+
+        if (dailyInElement) {
+
+            dailyInElement.textContent =
+                dailyCo2In.toFixed(1)
+                + " ppm";
+        }
+
+
+        if (dailyOutElement) {
+
+            dailyOutElement.textContent =
+                dailyCo2Out.toFixed(1)
+                + " ppm";
+        }
+
+
+        if (dailyEfficiencyElement) {
+
+            dailyEfficiencyElement.textContent =
+                dailyEfficiency.toFixed(2)
+                + " %";
+        }
+
+
+        console.log(
+            "History:",
+            history.length,
+            "data"
+        );
+
+        console.log(
+            "Hourly:",
+            hourlyData.length,
+            "data"
+        );
+
+        console.log(
+            "Daily:",
+            dailyData.length,
+            "data"
+        );
+
+    }
+
+);
 
 
 // =====================================================
@@ -742,25 +1395,33 @@ const navMenu =
     );
 
 
-menuToggle.addEventListener(
-    "click",
-    () => {
+if (
+    menuToggle &&
+    navMenu
+) {
 
-        navMenu.classList.toggle(
-            "show"
-        );
+    menuToggle.addEventListener(
+        "click",
+        () => {
 
-    }
-);
+            navMenu.classList.toggle(
+                "show"
+            );
 
+        }
+    );
+
+}
 
 
 // =====================================================
-// CLOSE MENU WHEN LINK CLICKED
+// CLOSE MOBILE MENU
 // =====================================================
 
 document
-    .querySelectorAll(".nav-link")
+    .querySelectorAll(
+        ".nav-link"
+    )
     .forEach(
         link => {
 
@@ -768,16 +1429,19 @@ document
                 "click",
                 () => {
 
-                    navMenu.classList.remove(
-                        "show"
-                    );
+                    if (navMenu) {
+
+                        navMenu.classList.remove(
+                            "show"
+                        );
+
+                    }
 
                 }
             );
 
         }
     );
-
 
 
 // =====================================================
@@ -839,7 +1503,8 @@ window.addEventListener(
                 if (
                     link.getAttribute(
                         "href"
-                    ) ===
+                    )
+                    ===
                     "#" + current
                 ) {
 
