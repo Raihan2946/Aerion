@@ -101,9 +101,9 @@ function hitungEfisiensi(
 
     const efficiency =
         (
-            (co2In - co2Out)
+            (co2Out - co2In)
             /
-            co2In
+            co2Out
         ) * 100;
 
     return efficiency;
