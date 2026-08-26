@@ -279,10 +279,10 @@ const co2Chart =
 
                     {
                         label:
-                            "CO₂ OUT",
+                            "CO₂ In",
 
                         data:
-                            co2OutValues,
+                            co2InValues,
 
                         borderWidth:
                             2,
@@ -306,10 +306,10 @@ const co2Chart =
 
                     {
                         label:
-                            "CO₂ IN",
+                            "CO₂ OUT",
 
                         data:
-                            co2InValues,
+                            co2OutValues,
 
                         borderWidth:
                             2,
