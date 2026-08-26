@@ -656,9 +656,9 @@ onValue(
         if (chartCurrent) {
 
             chartCurrent.textContent =
-                "IN " +
+                "OUT " +
                 co2In +
-                " | OUT " +
+                " | IN " +
                 co2Out +
                 " ppm";
         }
