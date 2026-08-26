@@ -279,37 +279,10 @@ const co2Chart =
 
                     {
                         label:
-                            "CO₂ OUT",
-
-                        data:
-                            co2InValues,
-
-                        borderWidth:
-                            2,
-
-                        tension:
-                            0.4,
-
-                        pointRadius:
-                            3,
-
-                        fill:
-                            false,
-
-                        borderColor:
-                            "#39e58c",
-
-                        pointBackgroundColor:
-                            "#39e58c"
-                    },
-
-
-                    {
-                        label:
                             "CO₂ IN",
 
                         data:
-                            co2OutValues,
+                            co2InValues,
 
                         borderWidth:
                             2,
@@ -328,6 +301,33 @@ const co2Chart =
 
                         pointBackgroundColor:
                             "#43d9d0"
+                    },
+
+
+                    {
+                        label:
+                            "CO₂ OUT",
+
+                        data:
+                            co2OutValues,
+
+                        borderWidth:
+                            2,
+
+                        tension:
+                            0.4,
+
+                        pointRadius:
+                            3,
+
+                        fill:
+                            false,
+
+                        borderColor:
+                            "#39e58c",
+
+                        pointBackgroundColor:
+                            "#39e58c"
                     }
 
                 ]
