@@ -279,7 +279,7 @@ const co2Chart =
 
                     {
                         label:
-                            "CO₂ IN",
+                            "CO₂ OUT",
 
                         data:
                             co2InValues,
@@ -306,7 +306,7 @@ const co2Chart =
 
                     {
                         label:
-                            "CO₂ OUT",
+                            "CO₂ IN",
 
                         data:
                             co2OutValues,
